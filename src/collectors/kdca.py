@@ -25,7 +25,7 @@ def get_kdca_ari_table(
 
     options = webdriver.ChromeOptions()
 
-    # 현재는 테스트 중이므로 브라우저 화면이 보이도록 유지
+    options.add_argument('--headless=new')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
