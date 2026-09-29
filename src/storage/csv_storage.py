@@ -193,6 +193,22 @@ def upsert_ili_region(
         .reset_index(drop=True)
     )
 
+    # 날짜 컬럼 포맷 통일
+    for col in [
+        '주차시작일',
+        '주차종료일',
+        '업데이트일자'
+    ]:
+
+        combined_df[col] = (
+            pd.to_datetime(
+                combined_df[col]
+            )
+            .dt.strftime(
+                '%Y-%m-%d'
+            )
+        )
+
     save_csv(
         combined_df,
         file_path
