@@ -423,9 +423,18 @@ def get_kopis_facility_list(
                     params=params,
                     timeout=20
                 )
-
+                
+                if response.status_code != 200:
+                    print(
+                        "[KOPIS 시설목록 오류]",
+                        f"page={page}",
+                        f"status={response.status_code}",
+                        f"url={response.url}",
+                        f"body={response.text[:500]}"
+                    )
+                
                 response.raise_for_status()
-
+                
                 root = ET.fromstring(
                     response.text
                 )
