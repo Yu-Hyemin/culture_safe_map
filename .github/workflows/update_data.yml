@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '10 11 * * *'
+      timezone: 'Asia/Seoul'
 
 permissions:
   contents: write
