@@ -27,7 +27,7 @@ HALL_METADATA_PATH = Path(
 # =========================================================
 
 def update_hall_metadata(
-    performance_detail_df,
+    hall_detail_df,
     metadata_path=HALL_METADATA_PATH
 ):
 
@@ -48,10 +48,10 @@ def update_hall_metadata(
 
     for col in required_cols:
 
-        if col not in performance_detail_df.columns:
+        if col not in hall_detail_df.columns:
 
             raise ValueError(
-                f'performance_detail_df에 '
+                f'hall_detail_df에 '
                 f'{col} 컬럼이 없습니다.'
             )
 
@@ -60,7 +60,7 @@ def update_hall_metadata(
     # -------------------------------------------------
 
     current_halls_df = (
-        performance_detail_df[
+        hall_detail_df[
             required_cols
         ]
         .dropna(
