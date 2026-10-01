@@ -1,0 +1,27 @@
+name: Test KOPIS Step 4
+
+on:
+  push:
+    branches:
+      - hyemin
+
+jobs:
+  test-step4:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Step 4 test
+        env:
+          KOPIS_KEY: ${{ secrets.KOPIS_KEY }}
+        run: python test_step4.py
