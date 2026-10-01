@@ -94,7 +94,8 @@ def get_exposure_level(row):
 def build_performance_master(
     performance_detail_df,
     hall_detail_df,
-    facility_list_df
+    facility_list_df,
+    hall_metadata_df
 ):
 
     hall_detail_df = hall_detail_df.copy()
@@ -130,6 +131,33 @@ def build_performance_master(
             '공연장ID'
         ],
         how='left'
+    )
+
+    # 공연장 장소유형 추가
+    performance_master_df = (
+        performance_master_df.merge(
+            hall_metadata_df[
+                [
+                    '공연시설ID',
+                    '공연장ID',
+                    '장소유형'
+                ]
+            ],
+            on=[
+                '공연시설ID',
+                '공연장ID'
+            ],
+            how='left'
+        )
+    )
+
+    performance_master_df[
+        '장소유형'
+    ] = (
+        performance_master_df[
+            '장소유형'
+        ]
+        .fillna('실내')
     )
 
     return performance_master_df
