@@ -6,23 +6,23 @@ from src.collectors.kopis import get_kopis_facility_list
 
 def run_step4_test():
 
-    hall_keys_df = pd.DataFrame({
-        '공연시설ID': [
-            'FC001270',
-            'FC000774',
-            'FC002035',
-            'FC001270',
-            'FC005053',
-            'FC001270',
-            'FC000325',
-            'FC000824',
-            'FC000047',
-            'FC001247'
+    performance_master_df = pd.read_csv(
+        'output/performance_master.csv',
+        encoding='utf-8-sig'
+    )
+
+    hall_keys_df = (
+        performance_master_df[
+            ['공연시설ID']
         ]
-    })
+        .dropna()
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
 
     print('========================================')
     print('[TEST] Step 4 단독 실행 시작')
+    print(f'[TEST] 대상 공연시설ID: {len(hall_keys_df)}개')
     print('========================================')
 
     facility_list_df = get_kopis_facility_list(
@@ -32,7 +32,6 @@ def run_step4_test():
 
     print()
     print(f'[TEST] 수집 결과: {len(facility_list_df)}건')
-    print(facility_list_df)
 
     print()
     print('========================================')
