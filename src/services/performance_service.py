@@ -10,7 +10,7 @@ from src.collectors.kopis import (
 
 from src.processors.performance import (
     build_performance_master,
-    add_exposure_levels
+    add_performance_risk_features
 )
 
 from src.services.hall_metadata_service import (
@@ -205,14 +205,6 @@ def refresh_performance_master(
         f'- 소요시간: '
         f'{format_elapsed(time.time() - step_start)}'
     )
-
-    log(
-        '[3/6] 공연시설 / 공연장 키 정리 완료 '
-        f'- {len(hall_keys_df)}개 '
-        f'- 소요시간: '
-        f'{format_elapsed(time.time() - step_start)}'
-    )
-
 
 
     # -------------------------------------------------
@@ -442,7 +434,7 @@ def refresh_performance_master(
     )
 
     performance_master_df = (
-        add_exposure_levels(
+        add_performance_risk_features(
             performance_master_df
         )
     )
