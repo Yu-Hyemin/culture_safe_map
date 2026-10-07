@@ -16,6 +16,7 @@ jobs:
 
     env:
       KOPIS_KEY: ${{ secrets.KOPIS_KEY }}
+      NEW_API_KEY: ${{ secrets.NEW_API_KEY }}
 
     steps:
       - name: Checkout repository
