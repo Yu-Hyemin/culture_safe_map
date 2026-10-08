@@ -794,7 +794,7 @@ def add_environment_score(
 
 
 # =========================================================
-# 행사위해점수
+# 확산주의도 점수
 #
 # 변경 가중치
 #
@@ -805,14 +805,14 @@ def add_environment_score(
 # 합계 = 1.000
 # =========================================================
 
-def add_event_risk_score(
+def add_spread_attention_score(
     performance_master_df
 ):
 
     df = performance_master_df.copy()
 
     df[
-        "행사위해점수"
+        "확산주의도_점수"
     ] = (
         df[
             "행사환경_점수"
@@ -830,8 +830,8 @@ def add_event_risk_score(
         * 0.254
     )
 
-    df["행사위해점수"] = pd.to_numeric(
-        df["행사위해점수"],
+    df["확산주의도_점수"] = pd.to_numeric(
+        df["확산주의도_점수"],
         errors="coerce"
     ).astype("Float64")
 
@@ -839,15 +839,95 @@ def add_event_risk_score(
 
 
 # =========================================================
-# 공연 위해요소 전체 계산
+# 확산주의도 단계 / 구분
+#
+# 0 ~ 2     = 1 / 매우 낮음
+# 2 초과 ~ 4 = 2 / 낮음
+# 4 초과 ~ 6 = 3 / 보통
+# 6 초과 ~ 8 미만 = 4 / 높음
+# 8 ~ 10    = 5 / 매우 높음
+# =========================================================
+
+def get_spread_attention_level(
+    score
+):
+
+    if pd.isna(score):
+        return pd.NA, pd.NA
+
+    score = float(score)
+
+    if score <= 2:
+        return 1, "매우 낮음"
+
+    elif score <= 4:
+        return 2, "낮음"
+
+    elif score <= 6:
+        return 3, "보통"
+
+    elif score < 8:
+        return 4, "높음"
+
+    else:
+        return 5, "매우 높음"
+
+
+
+def add_spread_attention_level(
+    performance_master_df
+):
+
+    df = performance_master_df.copy()
+
+    levels = df[
+        "확산주의도_점수"
+    ].apply(
+        get_spread_attention_level
+    )
+
+    df[
+        [
+            "확산주의도_단계",
+            "확산주의도_구분",
+        ]
+    ] = pd.DataFrame(
+        levels.tolist(),
+        index=df.index
+    )
+
+    df[
+        "확산주의도_단계"
+    ] = pd.to_numeric(
+        df[
+            "확산주의도_단계"
+        ],
+        errors="coerce"
+    ).astype("Int64")
+
+    df[
+        "확산주의도_구분"
+    ] = df[
+        "확산주의도_구분"
+    ].astype("string")
+
+    return df
+
+
+
+
+
+# =========================================================
+# 공연 확산주의도 전체 계산
 #
 # 순서:
 #
 # 1. 공연일수 계산
-# 2. 위험요소 기본값 생성
+# 2. 기본 변수 생성
 # 3. 요소별 점수 계산
 # 4. 행사환경 점수 계산
-# 5. 행사위해점수 계산
+# 5. 확산주의도 점수 계산
+# 6. 확산주의도 단계 / 구분 생성
 # =========================================================
 
 def add_performance_risk_features(
@@ -878,8 +958,11 @@ def add_performance_risk_features(
         df
     )
 
+    df = add_spread_attention_score(
+        df
+    )
 
-    df = add_event_risk_score(
+    df = add_spread_attention_level(
         df
     )
 
