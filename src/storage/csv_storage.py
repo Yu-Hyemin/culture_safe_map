@@ -12,14 +12,16 @@ def read_csv_if_exists(
     parse_dates=None
 ):
 
-    file_path = Path(file_path)
+    file_path = Path(
+        file_path
+    )
 
     if not file_path.exists():
         return pd.DataFrame()
 
     return pd.read_csv(
         file_path,
-        encoding='utf-8-sig',
+        encoding="utf-8-sig",
         parse_dates=parse_dates
     )
 
@@ -33,7 +35,9 @@ def save_csv(
     file_path
 ):
 
-    file_path = Path(file_path)
+    file_path = Path(
+        file_path
+    )
 
     file_path.parent.mkdir(
         parents=True,
@@ -43,16 +47,18 @@ def save_csv(
     df.to_csv(
         file_path,
         index=False,
-        encoding='utf-8-sig'
+        encoding="utf-8-sig"
     )
 
 
 # =========================================================
-# 공연마스터 저장
+# performance_master 저장
 #
 # 운영 방식:
-# - 매일 오늘 기준 3개월 공연을 다시 조회
-# - 최신본으로 교체
+# - 매일 오늘 기준 3개월 공연 전체 재조회
+# - 공연 / 공연장 정보 갱신
+# - 공연일수 및 행사위해점수 계산
+# - 최신본으로 전체 교체
 # =========================================================
 
 def save_performance_master(
@@ -67,74 +73,7 @@ def save_performance_master(
 
 
 # =========================================================
-# disease_df 누적 저장
-#
-# 키:
-# - 연도
-# - 주차
-# - 질병명
-#
-# 동일 키가 다시 들어오면
-# 새 데이터로 갱신
-# =========================================================
-
-def upsert_disease(
-    new_df,
-    file_path
-):
-
-    old_df = read_csv_if_exists(
-        file_path,
-        parse_dates=[
-            '주차시작일',
-            '주차종료일'
-        ]
-    )
-
-    if old_df.empty:
-
-        combined_df = new_df.copy()
-
-    else:
-
-        combined_df = pd.concat(
-            [
-                old_df,
-                new_df
-            ],
-            ignore_index=True
-        )
-
-    combined_df = (
-        combined_df
-        .drop_duplicates(
-            subset=[
-                '연도',
-                '주차',
-                '질병명'
-            ],
-            keep='last'
-        )
-        .sort_values(
-            [
-                '연도',
-                '주차',
-                '질병명'
-            ]
-        )
-        .reset_index(drop=True)
-    )
-
-    save_csv(
-        combined_df,
-        file_path
-    )
-
-    return combined_df
-
-
-# =========================================================
-# ili_region_df 누적 저장
+# ili_region 누적 저장
 #
 # 키:
 # - 연도
@@ -142,7 +81,9 @@ def upsert_disease(
 # - 지역_시도
 #
 # 동일 키가 다시 들어오면
-# 새 데이터로 갱신
+# 최신 데이터로 갱신
+#
+# 새로운 주차는 누적
 # =========================================================
 
 def upsert_ili_region(
@@ -153,15 +94,17 @@ def upsert_ili_region(
     old_df = read_csv_if_exists(
         file_path,
         parse_dates=[
-            '주차시작일',
-            '주차종료일',
-            '업데이트일자'
+            "주차시작일",
+            "주차종료일",
+            "업데이트일자"
         ]
     )
 
     if old_df.empty:
 
-        combined_df = new_df.copy()
+        combined_df = (
+            new_df.copy()
+        )
 
     else:
 
@@ -177,27 +120,29 @@ def upsert_ili_region(
         combined_df
         .drop_duplicates(
             subset=[
-                '연도',
-                '주차',
-                '지역_시도'
+                "연도",
+                "주차",
+                "지역_시도"
             ],
-            keep='last'
+            keep="last"
         )
         .sort_values(
             [
-                '연도',
-                '주차',
-                '지역_시도'
+                "연도",
+                "주차",
+                "지역_시도"
             ]
         )
-        .reset_index(drop=True)
+        .reset_index(
+            drop=True
+        )
     )
 
     # 날짜 컬럼 포맷 통일
     for col in [
-        '주차시작일',
-        '주차종료일',
-        '업데이트일자'
+        "주차시작일",
+        "주차종료일",
+        "업데이트일자"
     ]:
 
         combined_df[col] = (
@@ -205,73 +150,9 @@ def upsert_ili_region(
                 combined_df[col]
             )
             .dt.strftime(
-                '%Y-%m-%d'
+                "%Y-%m-%d"
             )
         )
-
-    save_csv(
-        combined_df,
-        file_path
-    )
-
-    return combined_df
-
-
-# =========================================================
-# risk_df 누적 저장
-#
-# 키:
-# - 공연ID
-# - 적용시작일
-#
-# 같은 공연의 같은 적용기간 결과가 다시 계산되면
-# 새 데이터로 갱신
-# =========================================================
-
-def upsert_risk(
-    new_df,
-    file_path
-):
-
-    old_df = read_csv_if_exists(
-        file_path,
-        parse_dates=[
-            '적용시작일',
-            '적용종료일'
-        ]
-    )
-
-    if old_df.empty:
-
-        combined_df = new_df.copy()
-
-    else:
-
-        combined_df = pd.concat(
-            [
-                old_df,
-                new_df
-            ],
-            ignore_index=True
-        )
-
-    combined_df = (
-        combined_df
-        .drop_duplicates(
-            subset=[
-                '공연ID',
-                '적용시작일'
-            ],
-            keep='last'
-        )
-        .sort_values(
-            [
-                '적용시작일',
-                '공연ID'
-            ]
-        )
-        .reset_index(drop=True)
-    )
 
     save_csv(
         combined_df,

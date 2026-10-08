@@ -10,7 +10,11 @@ from src.collectors.kopis import (
 
 from src.processors.performance import (
     build_performance_master,
-    add_exposure_levels
+    add_performance_risk_features
+)
+
+from src.services.hall_metadata_service import (
+    update_hall_metadata
 )
 
 from src.utils.logger import log
@@ -202,6 +206,24 @@ def refresh_performance_master(
         f'{format_elapsed(time.time() - step_start)}'
     )
 
+
+    # -------------------------------------------------
+    # KOPIS 요청 제한 방지를 위한 대기
+    # -------------------------------------------------
+
+    log(
+        '[WAIT] KOPIS 요청 없이 10분 대기 시작'
+    )
+    time.sleep(600)
+
+    log(
+        '[WAIT] 10분 대기 완료'
+    )
+
+
+
+
+
     # -------------------------------------------------
     # 4. 공연시설 목록 수집
     #
@@ -335,7 +357,32 @@ def refresh_performance_master(
         )
 
     # -------------------------------------------------
-    # 5-2. 중간 결과 저장
+    # 5-2. 공연장 메타데이터 갱신
+    #
+    # 기존 공연장 → 기존 장소유형 유지
+    # 신규 공연장 → 장소유형 '실내'로 추가
+    # -------------------------------------------------
+
+    log(
+        '[5-2/6] 공연장 메타데이터 갱신 시작'
+    )
+
+    hall_metadata_df = (
+        update_hall_metadata(
+            hall_detail_df
+        )
+    )
+
+    log(
+        '[5-2/6] 공연장 메타데이터 갱신 완료 '
+        f'- {len(hall_metadata_df)}개'
+    )
+
+
+
+
+    # -------------------------------------------------
+    # 5-3. 중간 결과 저장
     # -------------------------------------------------
 
     TEMP_DIR = Path('output/temp')
@@ -382,11 +429,12 @@ def refresh_performance_master(
     performance_master_df = build_performance_master(
         performance_detail_df=performance_detail_df,
         hall_detail_df=hall_detail_df,
-        facility_list_df=facility_list_df
+        facility_list_df=facility_list_df,
+        hall_metadata_df=hall_metadata_df
     )
 
     performance_master_df = (
-        add_exposure_levels(
+        add_performance_risk_features(
             performance_master_df
         )
     )
